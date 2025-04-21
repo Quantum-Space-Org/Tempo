@@ -1,0 +1,51 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{5074ECE4-CB41-4155-9202-1252A2E15654}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{2011D3CD-8BB3-4E56-8282-DCC1042B3407}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{09EB2FBF-5DE0-49CE-9D6B-ED6351A0A82F}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Quantum.Sequencer", "src\Sequencer\Quantum.Sequencer.csproj", "{C81662FE-384A-4280-8ED0-C02918956562}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Quantum.Tempo", "src\Tempo\Quantum.Tempo.csproj", "{5A1977F5-52AB-4DE2-850B-F8EC8B368C47}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Quantum.Tempo.Tests", "tests\Quantum.Tempo.Tests.csproj", "{D58371B6-4540-4FF5-B5DB-D2393358079A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C81662FE-384A-4280-8ED0-C02918956562}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C81662FE-384A-4280-8ED0-C02918956562}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C81662FE-384A-4280-8ED0-C02918956562}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C81662FE-384A-4280-8ED0-C02918956562}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A1977F5-52AB-4DE2-850B-F8EC8B368C47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A1977F5-52AB-4DE2-850B-F8EC8B368C47}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A1977F5-52AB-4DE2-850B-F8EC8B368C47}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A1977F5-52AB-4DE2-850B-F8EC8B368C47}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D58371B6-4540-4FF5-B5DB-D2393358079A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D58371B6-4540-4FF5-B5DB-D2393358079A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D58371B6-4540-4FF5-B5DB-D2393358079A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D58371B6-4540-4FF5-B5DB-D2393358079A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C81662FE-384A-4280-8ED0-C02918956562} = {5074ECE4-CB41-4155-9202-1252A2E15654}
+		{5A1977F5-52AB-4DE2-850B-F8EC8B368C47} = {5074ECE4-CB41-4155-9202-1252A2E15654}
+		{D58371B6-4540-4FF5-B5DB-D2393358079A} = {2011D3CD-8BB3-4E56-8282-DCC1042B3407}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7CE69326-D13A-4A9B-974F-50FB4C5203BA}
+	EndGlobalSection
+EndGlobal
