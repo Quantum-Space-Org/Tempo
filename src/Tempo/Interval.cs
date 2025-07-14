@@ -122,11 +122,17 @@ public class Interval
     {
         var i1 = Parse(interval1);
         var i2 = Parse(interval2);
-        if (i1.Finish.CompareTo(i2.Start) < 0 || i2.Finish.CompareTo(i1.Start) < 0)
-            return null; // Disjoint
-        var start = i1.Start.CompareTo(i2.Start) < 0 ? i1.Start : i2.Start;
-        var finish = i1.Finish.CompareTo(i2.Finish) > 0 ? i1.Finish : i2.Finish;
-        return new Interval(start, finish).ToIntervalString();
+        if (i1.Start == null || i2.Start == null || i1.Finish == null || i2.Finish == null)
+            return null;
+        // Overlap or adjacent
+        if (i1.Finish.CompareTo(i2.Start) >= 0 && i2.Finish.CompareTo(i1.Start) >= 0)
+        {
+            var start = i1.Start.CompareTo(i2.Start) < 0 ? i1.Start : i2.Start;
+            var finish = i1.Finish.CompareTo(i2.Finish) > 0 ? i1.Finish : i2.Finish;
+            return new Interval(start, finish).ToIntervalString();
+        }
+        // Disjoint
+        return null;
     }
 
     /// <summary>
@@ -136,11 +142,13 @@ public class Interval
     {
         var i1 = Parse(interval1);
         var i2 = Parse(interval2);
+        if (i1.Start == null || i2.Start == null || i1.Finish == null || i2.Finish == null)
+            return null;
         var start = i1.Start.CompareTo(i2.Start) > 0 ? i1.Start : i2.Start;
         var finish = i1.Finish.CompareTo(i2.Finish) < 0 ? i1.Finish : i2.Finish;
-        if (start.CompareTo(finish) > 0)
-            return null;
-        return new Interval(start, finish).ToIntervalString();
+        if (start.CompareTo(finish) < 0)
+            return new Interval(start, finish).ToIntervalString();
+        return null;
     }
 
     /// <summary>
@@ -150,17 +158,35 @@ public class Interval
     {
         var i1 = Parse(interval1);
         var i2 = Parse(interval2);
-        var result = new List<string>();
-        if (i2.Start.CompareTo(i1.Finish) > 0 || i2.Finish.CompareTo(i1.Start) < 0)
+        var results = new List<string>();
+        if (i1.Start == null || i2.Start == null || i1.Finish == null || i2.Finish == null)
+            return results;
+        // No overlap
+        if (i1.Finish.CompareTo(i2.Start) <= 0 || i2.Finish.CompareTo(i1.Start) <= 0)
         {
-            result.Add(i1.ToIntervalString()); // No overlap
-            return result;
+            results.Add(new Interval(i1.Start, i1.Finish).ToIntervalString());
+            return results;
         }
-        if (i2.Start.CompareTo(i1.Start) > 0)
-            result.Add(new Interval(i1.Start, i2.Start).ToIntervalString());
-        if (i2.Finish.CompareTo(i1.Finish) < 0)
-            result.Add(new Interval(i2.Finish, i1.Finish).ToIntervalString());
-        return result;
+        // Full overlap
+        if (i2.Start.CompareTo(i1.Start) <= 0 && i2.Finish.CompareTo(i1.Finish) >= 0)
+        {
+            return results; // empty
+        }
+        // Left part
+        if (i1.Start.CompareTo(i2.Start) < 0)
+        {
+            var leftFinish = i2.Start;
+            if (i1.Start.CompareTo(leftFinish) < 0)
+                results.Add(new Interval(i1.Start, leftFinish).ToIntervalString());
+        }
+        // Right part
+        if (i1.Finish.CompareTo(i2.Finish) > 0)
+        {
+            var rightStart = i2.Finish;
+            if (rightStart.CompareTo(i1.Finish) < 0)
+                results.Add(new Interval(rightStart, i1.Finish).ToIntervalString());
+        }
+        return results;
     }
 
     /// <summary>
@@ -169,10 +195,29 @@ public class Interval
     public static string Duration(string intervalString)
     {
         var i = Parse(intervalString);
+        if (i.Start == null || i.Finish == null)
+            return "PT0S";
         var start = i.Start.ToDateTime();
         var finish = i.Finish.ToDateTime();
         var duration = finish - start;
-        return Quantum.Tempo.Times.Duration.Parse(duration.ToString()).ToIsoString();
+        // Convert TimeSpan to ISO 8601 duration
+        return TimeSpanToIso8601(duration);
+    }
+
+    private static string TimeSpanToIso8601(TimeSpan ts)
+    {
+        if (ts == TimeSpan.Zero) return "PT0S";
+        var sb = new System.Text.StringBuilder();
+        sb.Append('P');
+        if (ts.Days > 0) sb.Append(ts.Days + "D");
+        if (ts.Hours > 0 || ts.Minutes > 0 || ts.Seconds > 0)
+        {
+            sb.Append('T');
+            if (ts.Hours > 0) sb.Append(ts.Hours + "H");
+            if (ts.Minutes > 0) sb.Append(ts.Minutes + "M");
+            if (ts.Seconds > 0) sb.Append(ts.Seconds + "S");
+        }
+        return sb.ToString();
     }
 
     /// <summary>

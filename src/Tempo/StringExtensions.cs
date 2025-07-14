@@ -2,6 +2,7 @@ using System;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using System.Collections.Generic; // Added for List
+using System.Linq;
 
 namespace Quantum.Tempo;
 
@@ -111,7 +112,7 @@ public static class StringExtensions
     public static string IsoPattern(this string value)
     {
 
-        var time = SplitTime(value).time;
+        var time = SplitTime(value).datePart;
 
         if (new Regex(@"\d\d\d\d-W\d\d-\d").IsMatch(time))
             return IsoFormatter.YearWeekDay;
@@ -933,8 +934,8 @@ public static class StringExtensions
     /// <returns>A normalized ISO 8601 date/time string with offset.</returns>
     public static string NormalizeToIsoWithOffset(this string value, string? defaultOffset = null)
     {
-        var (time, offset, _) = value.SplitTime();
-        var iso = time.AutoNormalizeToIsoDateString();
+        var (datePart, offset, _) = value.SplitTime();
+        var iso = datePart.AutoNormalizeToIsoDateString();
         if (string.IsNullOrEmpty(offset))
             offset = defaultOffset ?? "Z";
         return $"{iso}{offset}";
@@ -948,8 +949,8 @@ public static class StringExtensions
     /// <returns>A date/time string in the target offset.</returns>
     public static string ToTimeZone(this string value, string targetOffset)
     {
-        var (time, offset, _) = value.SplitTime();
-        var iso = time.AutoNormalizeToIsoDateString();
+        var (datePart, offset, _) = value.SplitTime();
+        var iso = datePart.AutoNormalizeToIsoDateString();
         // Parse the base time as UTC if offset is present, else as local
         DateTime dt;
         if (!string.IsNullOrEmpty(offset) && offset != "Z")

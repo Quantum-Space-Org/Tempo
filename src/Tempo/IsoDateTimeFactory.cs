@@ -6,10 +6,10 @@ internal class IsoDateTimeFactory
 {
     public static DateTime Create(string value)
     {
-        var strings = value.SplitTime();
+        var (datePart, offset, zone) = value.SplitTime();
 
         var split =
-            strings.time.Split("T");
+            datePart.Split("T");
 
         var strings1 = split[0].Split("-");
         var year = strings1[0];

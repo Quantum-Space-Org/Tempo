@@ -2,6 +2,7 @@ using System;
 using Xunit;
 using Quantum.Tempo;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace Quantum.Tempo.Tests;
 
@@ -36,10 +37,10 @@ public class StringifyTests
     [InlineData("2017T+05:00", "2017", "+05:00")]
     public void timeWithTimeZone(string actualDate, string time, string offset = "", string zone = "")
     {
-        var result = actualDate.SplitTime();
-        Assert.Equal(time, result.time);
-        Assert.Equal(offset, result.offset);
-        Assert.Equal(zone, result.zone);
+        var (datePart, resultOffset, resultZone) = actualDate.SplitTime();
+        Assert.Equal(time, datePart);
+        Assert.Equal(offset, resultOffset);
+        Assert.Equal(zone, resultZone);
     }
 
     [Fact(DisplayName = "In cannonical string, least significant place is scale.")]

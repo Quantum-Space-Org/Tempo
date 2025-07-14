@@ -50,9 +50,9 @@ public class TimeFactory
 
     private static Time YearMonthDayTimeHourMinute(string value)
     {
-        var valueTuple = value.SplitTime();
+        var (datePart, offset, zone) = value.SplitTime();
 
-        var strings = valueTuple.time.Split("T");
+        var strings = datePart.Split("T");
         var date = strings[0].Split("-");
         var time = strings[1];
 
@@ -63,19 +63,19 @@ public class TimeFactory
             , time.Split(":")[0]
             , time.Split(":")[1]);
 
-        if (valueTuple.offset is null)
+        if (offset is null)
         {
             return yearMonthDayTimeHourMinuteTime;
         }
 
-        return yearMonthDayTimeHourMinuteTime.Offset(valueTuple.offset).TimeZone(valueTuple.zone);
+        return yearMonthDayTimeHourMinuteTime.Offset(offset).TimeZone(zone);
     }
 
     private static Time YearMonthDayTimeHourMinuteSecond(string value)
     {
-        var valueTuple = value.SplitTime();
+        var (datePart, offset, zone) = value.SplitTime();
 
-        var strings = valueTuple.time.Split("T");
+        var strings = datePart.Split("T");
         var date = strings[0].Split("-");
         var time = strings[1];
 
@@ -87,12 +87,12 @@ public class TimeFactory
             , time.Split(":")[1]
             , time.Split(":")[2]);
 
-        if (valueTuple.offset is null)
+        if (offset is null)
         {
             return yearMonthDayTimeHourMinuteTime;
         }
 
-        return yearMonthDayTimeHourMinuteTime.Offset(valueTuple.offset).TimeZone(valueTuple.zone);
+        return yearMonthDayTimeHourMinuteTime.Offset(offset).TimeZone(zone);
     }
 
 
