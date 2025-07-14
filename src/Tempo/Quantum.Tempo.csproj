@@ -18,5 +18,5 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\Sequencer\Quantum.Sequencer.csproj" />
 	</ItemGroup>
-
+ 
 </Project>
