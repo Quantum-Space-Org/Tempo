@@ -1,4 +1,7 @@
-﻿namespace Quantum.Tempo.Tests;
+﻿using System;
+using Xunit;
+using Quantum.Tempo;
+using System.Collections.Generic;
 
 public class IntervalTests
 {
@@ -117,6 +120,73 @@ public class IntervalTests
         "2019 / 2016".FromIso().Guard().Should().BeFalse();
         "2016/2016-06".FromIso().Guard().Should().BeFalse();
 
+    }
+
+    [Theory]
+    [InlineData("2024-01-01/2024-01-10", "2024-01-01", "2024-01-10")]
+    [InlineData("/2024-01-10", null, "2024-01-10")]
+    [InlineData("2024-01-01/", "2024-01-01", null)]
+    [InlineData("2024-01-01", "2024-01-01", "2024-01-01")]
+    public void Parse_And_ToIntervalString_Works(string input, string expectedStart, string expectedFinish)
+    {
+        var interval = Quantum.Tempo.Interval.Parse(input);
+        Assert.Equal(expectedStart, interval.Start?.ToIso());
+        Assert.Equal(expectedFinish, interval.Finish?.ToIso());
+        // ToIntervalString roundtrip
+        if (expectedStart != null && expectedFinish != null)
+            Assert.Equal($"{expectedStart}/{expectedFinish}", interval.ToIntervalString());
+    }
+
+    [Theory]
+    [InlineData("2024-01-01/2024-01-10", "2024-01-05/2024-01-15", "2024-01-01/2024-01-15")]
+    [InlineData("2024-01-01/2024-01-10", "2024-01-11/2024-01-20", null)]
+    public void Union_Works(string i1, string i2, string expected)
+    {
+        Assert.Equal(expected, Quantum.Tempo.Interval.Union(i1, i2));
+    }
+
+    [Theory]
+    [InlineData("2024-01-01/2024-01-10", "2024-01-05/2024-01-15", "2024-01-05/2024-01-10")]
+    [InlineData("2024-01-01/2024-01-10", "2024-01-11/2024-01-20", null)]
+    public void Intersection_Works(string i1, string i2, string expected)
+    {
+        Assert.Equal(expected, Quantum.Tempo.Interval.Intersection(i1, i2));
+    }
+
+    [Theory]
+    [InlineData("2024-01-01/2024-01-10", "2024-01-05/2024-01-08", new[] { "2024-01-01/2024-01-05", "2024-01-08/2024-01-10" })]
+    [InlineData("2024-01-01/2024-01-10", "2024-01-11/2024-01-20", new[] { "2024-01-01/2024-01-10" })]
+    public void Difference_Works(string i1, string i2, string[] expected)
+    {
+        var result = Quantum.Tempo.Interval.Difference(i1, i2);
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [InlineData("2024-01-01/2024-01-10", "P9D")]
+    [InlineData("2024-01-01/2024-01-01", "PT0S")]
+    public void Duration_Works(string interval, string expectedDuration)
+    {
+        Assert.Equal(expectedDuration, Quantum.Tempo.Interval.Duration(interval));
+    }
+
+    [Theory]
+    [InlineData("2024-01-01/2024-01-05", "2024-01-06/2024-01-10", "Before")]
+    [InlineData("2024-01-06/2024-01-10", "2024-01-01/2024-01-05", "After")]
+    [InlineData("2024-01-01/2024-01-05", "2024-01-05/2024-01-10", "Meets")]
+    [InlineData("2024-01-05/2024-01-10", "2024-01-01/2024-01-05", "MetBy")]
+    [InlineData("2024-01-01/2024-01-05", "2024-01-01/2024-01-10", "Starts")]
+    [InlineData("2024-01-01/2024-01-10", "2024-01-01/2024-01-05", "StartedBy")]
+    [InlineData("2024-01-05/2024-01-10", "2024-01-01/2024-01-10", "Finishes")]
+    [InlineData("2024-01-01/2024-01-10", "2024-01-05/2024-01-10", "FinishedBy")]
+    [InlineData("2024-01-03/2024-01-07", "2024-01-01/2024-01-10", "During")]
+    [InlineData("2024-01-01/2024-01-10", "2024-01-03/2024-01-07", "Contains")]
+    [InlineData("2024-01-01/2024-01-07", "2024-01-05/2024-01-10", "Overlaps")]
+    [InlineData("2024-01-05/2024-01-10", "2024-01-01/2024-01-07", "OverlappedBy")]
+    [InlineData("2024-01-01/2024-01-10", "2024-01-01/2024-01-10", "Equal")]
+    public void Relation_Works(string i1, string i2, string expected)
+    {
+        Assert.Equal(expected, Quantum.Tempo.Interval.Relation(i1, i2));
     }
 }
 

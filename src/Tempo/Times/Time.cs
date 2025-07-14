@@ -25,6 +25,8 @@ public class TimeIntervalFactory
 
 public abstract class Time : Interval
 {
+    public TimeZoneInfo TimeZoneInfo { get; protected set; }
+
     public abstract Time Next(int times = 1);
 
 
@@ -50,13 +52,12 @@ public abstract class Time : Interval
     private bool leapYear;
     protected string _offsetValue;
 
-    protected Time(YearSequencer yearSequencer) : base(null, null)
+    protected Time(YearSequencer yearSequencer, TimeZoneInfo timeZoneInfo = null) : base(null, null)
     {
         _year = yearSequencer;
         leapYear = DateTime.IsLeapYear(_year.Current());
-
+        TimeZoneInfo = timeZoneInfo ?? TimeZoneInfo.Utc;
         BoundedTo(this);
-        
     }
 
     protected Time Month(string month)
@@ -337,6 +338,21 @@ public abstract class Time : Interval
         Start= this;
         Finish = finishesAt;
     }
+
+    public Time WithTimeZone(TimeZoneInfo newZone)
+    {
+        // Convert the current time to DateTime in the current time zone
+        var localDateTime = ToDateTime();
+        var utcDateTime = TimeZoneInfo.ConvertTimeToUtc(localDateTime, TimeZoneInfo);
+        var newLocalDateTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, newZone);
+        // Create a new instance in the new time zone
+        var clone = (Time)Clone();
+        clone.SetFromDateTime(newLocalDateTime, newZone);
+        return clone;
+    }
+
+    protected abstract void SetFromDateTime(DateTime dateTime, TimeZoneInfo zone);
+    public abstract DateTime ToDateTime();
 }
 
 public enum DayMonth

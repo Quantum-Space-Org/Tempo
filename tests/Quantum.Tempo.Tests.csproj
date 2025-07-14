@@ -6,6 +6,7 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<LangVersion>preview</LangVersion>
 		<EnablePreviewFeatures>true</EnablePreviewFeatures>
+		<Version>1.0.0</Version>
 
 		<IsPackable>false</IsPackable>
 		<IsTestProject>true</IsTestProject>

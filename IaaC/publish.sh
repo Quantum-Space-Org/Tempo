@@ -59,7 +59,7 @@ echo "🚀 Starting to publish the latest versions of packages..."
 
 for PACKAGE_ID in "${!package_paths[@]}"; do
   PACKAGE="${package_paths["$PACKAGE_ID"]}"
-  VERSION="${latest_versions["$PACKAGE_ID"]}"
+  VERSION="1.0.0"
 
   echo "🚀 Publishing $PACKAGE (Version: $VERSION) to GitHub Packages..."
 

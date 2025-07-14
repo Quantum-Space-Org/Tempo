@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using TimeSequencer.Times;
 
 namespace Quantum.Tempo;
@@ -9,11 +10,11 @@ public class YearWeekDayTime : Time
     private DayWeekSequencer _dayWeek;
     private const string Symbol = "W";
 
-    public static YearWeekDayTime New(string year, string week, string day)
-        => new(year, week, day);
+    public static YearWeekDayTime New(string year, string week, string day, TimeZoneInfo timeZoneInfo = null)
+        => new(year, week, day, timeZoneInfo);
 
 
-    public YearWeekDayTime(string year, string week, string day) : base(YearSequencer.New(int.Parse(year)))
+    public YearWeekDayTime(string year, string week, string day, TimeZoneInfo timeZoneInfo = null) : base(YearSequencer.New(int.Parse(year)), timeZoneInfo)
     {
         var current = int.Parse(week[1..]);
 
@@ -104,5 +105,20 @@ public class YearWeekDayTime : Time
     public override Time EnclosingImmediate()
     {
         throw new System.NotImplementedException();
+    }
+
+    public override DateTime ToDateTime()
+    {
+        // ISO week to date: get the first day of the year, add (week-1)*7 days, then add (day-1)
+        var jan1 = new DateTime(_year.Current(), 1, 1, 0, 0, 0, DateTimeKind.Unspecified);
+        return jan1.AddDays((_currentWeek.Current() - 1) * 7 + (_dayWeek.Current() - 1));
+    }
+    protected override void SetFromDateTime(DateTime dateTime, TimeZoneInfo zone)
+    {
+        _year = new YearSequencer(dateTime.Year);
+        var week = System.Globalization.CultureInfo.InvariantCulture.Calendar.GetWeekOfYear(dateTime, System.Globalization.CalendarWeekRule.FirstFourDayWeek, System.DayOfWeek.Monday);
+        _currentWeek = new WeekYearSequencer(week);
+        _dayWeek = new DayWeekSequencer((int)dateTime.DayOfWeek + 1); // +1 to match 1-based
+        this.TimeZoneInfo = zone;
     }
 }

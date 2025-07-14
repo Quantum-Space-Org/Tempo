@@ -7,6 +7,7 @@ Set-Location "$scriptDir/.."
 
 $CONFIG = "Release"
 $OUTPUT_DIR = ".\build"  # This will ensure the build folder is in the root
+$version = "1.0.0"
 
 Write-Host "🔨 Building solution in $(Get-Location) ..."
 dotnet build Quantum.Tempo.sln --configuration $CONFIG

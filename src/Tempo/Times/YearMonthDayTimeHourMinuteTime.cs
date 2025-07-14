@@ -1,38 +1,49 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using TimeSequencer.Times;
 
 namespace Quantum.Tempo;
 
 public class YearMonthDayTimeHourMinuteTime : Time
 {
-    public static YearMonthDayTimeHourMinuteTime New(string year, string month, string day
-    , string hour, string minute)
+    public static YearMonthDayTimeHourMinuteTime New(string year, string month, string day, string hour, string minute, TimeZoneInfo timeZoneInfo = null)
     {
-        return new(year, month, day, hour, minute);
+        return new(year, month, day, hour, minute, timeZoneInfo);
     }
-
-    public YearMonthDayTimeHourMinuteTime(string year, string month, string day
-        , string hour, string minute) : base(YearSequencer.New(int.Parse(year)))
+    public YearMonthDayTimeHourMinuteTime(string year, string month, string day, string hour, string minute, TimeZoneInfo timeZoneInfo = null) : base(YearSequencer.New(int.Parse(year)), timeZoneInfo)
     {
         Month(month);
         Day(day);
         Hour(hour);
         Minute(minute);
     }
+    public override DateTime ToDateTime()
+    {
+        return new DateTime(_year.Current(), _month.Current(), _day.Current(), _hour.Current(), _minute.Current(), 0, DateTimeKind.Unspecified);
+    }
+    protected override void SetFromDateTime(DateTime dateTime, TimeZoneInfo zone)
+    {
+        _year = new YearSequencer(dateTime.Year);
+        _month = new MonthSequencer(12, dateTime.Month);
+        _day = new DaySequencer(DateTime.DaysInMonth(dateTime.Year, dateTime.Month), dateTime.Day);
+        _hour = new HourSequencer(dateTime.Hour);
+        _minute = new MinuteSequencer(dateTime.Minute);
+        this.TimeZoneInfo = zone;
+    }
     
     public override string ToIso()
     {
-        //2017 - 10 - 31T20: 00 - 05
-        var iso = $"{_year.ToString()}-{_month.ToString()}-{_day.ToString()}T{_hour.ToString()}:{_minute.ToString()}";
-
+        var iso = $"{_year.Current():D4}-{_month.Current():D2}-{_day.Current():D2}T{_hour.Current():D2}:{_minute.Current():D2}";
         if (_offsetValue is not "" && _timezone is not "")
             iso = $"{iso}{_offsetValue}{_timezone}";
-       else if (_offsetValue is not "")
+        else if (_offsetValue is not "")
             iso = $"{iso}{_offsetValue}";
         else if (_timezone is not "")
             iso = $"{iso}{_timezone}";
         return iso;
     }
+    public override string ToString()
+        => ToIso();
 
 
     public override Time Next(int times = 1)
@@ -46,12 +57,6 @@ public class YearMonthDayTimeHourMinuteTime : Time
        MinutePrevTimes(times);
         return Clone();
     }
-
-    public override string ToString()
-    {
-        return ToIso();
-    }
-
 
     protected override Time Clone()
     {

@@ -1,4 +1,7 @@
-using System.Globalization;
+using System;
+using Xunit;
+using Quantum.Tempo;
+using System.Collections.Generic;
 
 namespace Quantum.Tempo.Tests;
 
@@ -378,4 +381,190 @@ public class StringifyTests
     [InlineData("2017-W50-7")]
 
     public void equality(string actual) => Assert.Equal(actual.FromIso().ToTime(), actual.FromIso().ToTime());
+
+    [Theory]
+    [InlineData("14:30", "14:30")]
+    [InlineData("2:5:9", "02:05:09")]
+    public void ParseTimeOfDay_Works(string input, string expected)
+    {
+        Assert.Equal(expected, StringExtensions.ParseTimeOfDay(input));
+    }
+
+    [Theory]
+    [InlineData("2024-05", "May 2024")]
+    [InlineData("2023-12", "December 2023")]
+    public void ToHumanMonth_Works(string input, string expected)
+    {
+        Assert.Equal(expected, input.ToHumanMonth());
+    }
+
+    [Theory]
+    [InlineData("2024", "2024")]
+    public void ToHumanYear_Works(string input, string expected)
+    {
+        Assert.Equal(expected, input.ToHumanYear());
+    }
+
+    [Theory]
+    [InlineData("2024-W23", "Week 23 of 2024")]
+    public void ToHumanWeek_Works(string input, string expected)
+    {
+        Assert.Equal(expected, input.ToHumanWeek());
+    }
+
+    [Theory]
+    [InlineData("2024-123", "Day 123 of 2024")]
+    public void ToHumanDayOfYear_Works(string input, string expected)
+    {
+        Assert.Equal(expected, input.ToHumanDayOfYear());
+    }
+
+    [Fact]
+    public void NextPrevWeekMonthYear_Work()
+    {
+        var d = "2024-01-01";
+        Assert.Equal("2024-01-08", d.NextWeek());
+        Assert.Equal("2023-12-25", d.PrevWeek());
+        Assert.Equal("2024-02-01", d.NextMonth());
+        Assert.Equal("2023-12-01", d.PrevMonth());
+        Assert.Equal("2025-01-01", d.NextYear());
+        Assert.Equal("2023-01-01", d.PrevYear());
+    }
+
+    [Fact]
+    public void SequenceByMonth_And_Year_Work()
+    {
+        var months = "2024-01-01".SequenceByMonth("2024-03-01");
+        Assert.Equal(new List<string> { "2024-01-01", "2024-02-01", "2024-03-01" }, months);
+        var years = "2022-01-01".SequenceByYear("2024-01-01");
+        Assert.Equal(new List<string> { "2022-01-01", "2023-01-01", "2024-01-01" }, years);
+    }
+
+    [Fact]
+    public void CompareDates_And_Order_Work()
+    {
+        Assert.Equal(-1, StringExtensions.CompareDates("2024-01-01", "2024-01-02"));
+        Assert.Equal(1, StringExtensions.CompareDates("2024-01-02", "2024-01-01"));
+        Assert.Equal(0, StringExtensions.CompareDates("2024-01-01", "2024-01-01"));
+        Assert.True(StringExtensions.IsBefore("2024-01-01", "2024-01-02"));
+        Assert.True(StringExtensions.IsAfter("2024-01-02", "2024-01-01"));
+        Assert.True(StringExtensions.IsEqualDate("2024-01-01", "2024-01-01"));
+    }
+
+    [Fact]
+    public void IsWithinInterval_And_IntervalContains_Work()
+    {
+        var interval = "2024-01-01/2024-01-10";
+        Assert.True(StringExtensions.IsWithinInterval("2024-01-05", interval));
+        Assert.False(StringExtensions.IsWithinInterval("2024-01-11", interval));
+        Assert.True(StringExtensions.IntervalContains(interval, "2024-01-05"));
+        Assert.False(StringExtensions.IntervalContains(interval, "2024-01-11"));
+        Assert.True(StringExtensions.IntervalContains(interval, "2024-01-02/2024-01-09"));
+        Assert.False(StringExtensions.IntervalContains(interval, "2023-12-31/2024-01-02"));
+    }
+
+    [Fact]
+    public void SplitIntervalByParts_And_Duration_Work()
+    {
+        var interval = "2024-01-01/2024-01-11";
+        var parts = StringExtensions.SplitIntervalByParts(interval, 2);
+        Assert.Equal(new List<string> { "2024-01-01/2024-01-06", "2024-01-06/2024-01-11" }, parts);
+        var byDur = StringExtensions.SplitIntervalByDuration(interval, "P5D");
+        Assert.Equal(new List<string> { "2024-01-01/2024-01-06", "2024-01-06/2024-01-11" }, byDur);
+    }
+
+    [Theory]
+    [InlineData("2024-05-01T14:30+03:30", null, "2024-05-01T14:30+03:30")]
+    [InlineData("2024-05-01T14:30", "+02:00", "2024-05-01T14:30+02:00")]
+    [InlineData("2024-05-01T14:30", null, "2024-05-01T14:30Z")]
+    public void NormalizeToIsoWithOffset_Works(string input, string defaultOffset, string expected)
+    {
+        Assert.Equal(expected, input.NormalizeToIsoWithOffset(defaultOffset));
+    }
+
+    [Theory]
+    [InlineData("2024-05-01T14:30+03:30", "+02:00", "2024-05-01T13:00:00+02:00")]
+    [InlineData("2024-05-01T14:30Z", "+01:00", "2024-05-01T15:30:00+01:00")]
+    [InlineData("2024-05-01T14:30", "Z", "2024-05-01T14:30:00Z")]
+    public void ToTimeZone_Works(string input, string targetOffset, string expected)
+    {
+        Assert.Equal(expected, input.ToTimeZone(targetOffset));
+    }
+
+    [Theory]
+    [InlineData("2024-05-01T14:30+03:30", "+03:30")]
+    [InlineData("2024-05-01T14:30Z", "Z")]
+    [InlineData("2024-05-01T14:30", "Z")]
+    public void ExtractOffset_Works(string input, string expected)
+    {
+        Assert.Equal(expected, input.ExtractOffset());
+    }
+
+    [Fact]
+    public void IsBusinessDay_And_IsHoliday_Work()
+    {
+        var holidays = new List<string> { "2024-05-01", "2024-05-02" };
+        Assert.True(StringExtensions.IsBusinessDay("2024-05-03", holidays)); // Friday
+        Assert.False(StringExtensions.IsBusinessDay("2024-05-04", holidays)); // Saturday (weekend)
+        Assert.False(StringExtensions.IsBusinessDay("2024-05-01", holidays)); // Holiday
+        Assert.True(StringExtensions.IsHoliday("2024-05-01", holidays));
+        Assert.False(StringExtensions.IsHoliday("2024-05-03", holidays));
+    }
+
+    [Fact]
+    public void NextBusinessDay_And_PrevBusinessDay_Work()
+    {
+        var holidays = new List<string> { "2024-05-01", "2024-05-02" };
+        // 2024-05-03 is Friday, next business day after 2024-05-03 is Monday (2024-05-06)
+        Assert.Equal("2024-05-06", StringExtensions.NextBusinessDay("2024-05-03", holidays));
+        // 2024-05-06 is Monday, previous business day is Friday (2024-05-03)
+        Assert.Equal("2024-05-03", StringExtensions.PrevBusinessDay("2024-05-06", holidays));
+    }
+
+    [Fact]
+    public void ParseRelativeDate_Works()
+    {
+        var refDate = "2024-05-01"; // Wednesday
+        Assert.Equal("2024-05-01", StringExtensions.ParseRelativeDate("today", refDate));
+        Assert.Equal("2024-05-02", StringExtensions.ParseRelativeDate("tomorrow", refDate));
+        Assert.Equal("2024-04-30", StringExtensions.ParseRelativeDate("yesterday", refDate));
+        Assert.Equal("2024-05-03", StringExtensions.ParseRelativeDate("next Friday", refDate));
+        Assert.Equal("2024-04-29", StringExtensions.ParseRelativeDate("last Monday", refDate));
+        Assert.Equal("2024-05-01", StringExtensions.ParseRelativeDate("this Wednesday", refDate));
+    }
+
+    [Fact]
+    public void WeekMonthYearBoundaries_Work()
+    {
+        // 2024-05-01 is Wednesday
+        Assert.Equal("2024-04-29", StringExtensions.StartOfWeek("2024-05-01")); // Monday
+        Assert.Equal("2024-05-05", StringExtensions.EndOfWeek("2024-05-01"));   // Sunday
+        Assert.Equal("2024-05-01", StringExtensions.StartOfMonth("2024-05-01"));
+        Assert.Equal("2024-05-31", StringExtensions.EndOfMonth("2024-05-01"));
+        Assert.Equal("2024-01-01", StringExtensions.StartOfYear("2024-05-01"));
+        Assert.Equal("2024-12-31", StringExtensions.EndOfYear("2024-05-01"));
+    }
+
+    [Fact]
+    public void ToHumanMonth_And_Week_Localization_Works()
+    {
+        Assert.Equal("May 2024", "2024-05".ToHumanMonth("en"));
+        Assert.Equal("فروردین 2024", "2024-01".ToHumanMonth("fa"));
+        Assert.Equal("يناير 2024", "2024-01".ToHumanMonth("ar"));
+        Assert.Equal("Week 23 of 2024", "2024-W23".ToHumanWeek("en"));
+        Assert.Equal("هفته 23 سال 2024", "2024-W23".ToHumanWeek("fa"));
+        Assert.Equal("الأسبوع 23 من 2024", "2024-W23".ToHumanWeek("ar"));
+    }
+
+    [Fact]
+    public void ParseRRule_Works()
+    {
+        var daily = StringExtensions.ParseRRule("FREQ=DAILY;COUNT=3", "2024-05-01");
+        Assert.Equal(new List<string> { "2024-05-01", "2024-05-02", "2024-05-03" }, daily);
+        var weekly = StringExtensions.ParseRRule("FREQ=WEEKLY;BYDAY=MO,WE,FR;COUNT=4", "2024-05-01");
+        // 2024-05-01 is Wednesday, so first is 2024-05-01 (Wed), then 2024-05-03 (Fri), then 2024-05-06 (Mon), then 2024-05-08 (Wed)
+        Assert.Equal(new List<string> { "2024-05-01", "2024-05-03", "2024-05-06", "2024-05-08" }, weekly);
+        var monthly = StringExtensions.ParseRRule("FREQ=MONTHLY;COUNT=2", "2024-05-01");
+        Assert.Equal(new List<string> { "2024-05-01", "2024-06-01" }, monthly);
+    }
 }

@@ -1,5 +1,9 @@
 ﻿namespace Quantum.Tempo.Tests;
 
+using System;
+using Xunit;
+using TimeSequencer.Times;
+
 public class TimeTests
 {
     [Theory]
@@ -112,5 +116,36 @@ public class TimeTests
         var rightSideTime = rightSideIso.FromIso().ToTime();
 
         Assert.Equal(expectingRelation, leftSideTime.CompareTo(rightSideTime));
+    }
+}
+
+public class TimeZoneTests
+{
+    [Fact]
+    public void TimeZone_Conversion_Respects_DST()
+    {
+        var utcZone = TimeZoneInfo.Utc;
+        var nyZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"); // Windows ID for America/New_York
+        // 2023-03-12T06:30:00Z is 1:30 AM EST, just before DST starts in NY
+        var t = YearMonthDayTimeHourMinuteSecondTime.New("2023", "03", "12", "01", "30", "00", nyZone);
+        var utc = t.WithTimeZone(utcZone);
+        Assert.Equal("2023-03-12T06:30:00Z", utc.ToIso());
+        // Now convert back to NY time
+        var ny = utc.WithTimeZone(nyZone);
+        Assert.Equal("2023-03-12T01:30:00-05:00", ny.ToIso());
+    }
+
+    [Fact]
+    public void TimeZone_Conversion_Handles_DST_Forward()
+    {
+        var utcZone = TimeZoneInfo.Utc;
+        var nyZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+        // 2023-03-12T07:30:00Z is 3:30 AM EDT, just after DST starts in NY
+        var t = YearMonthDayTimeHourMinuteSecondTime.New("2023", "03", "12", "03", "30", "00", nyZone);
+        var utc = t.WithTimeZone(utcZone);
+        Assert.Equal("2023-03-12T07:30:00Z", utc.ToIso());
+        // Now convert back to NY time
+        var ny = utc.WithTimeZone(nyZone);
+        Assert.Equal("2023-03-12T03:30:00-04:00", ny.ToIso());
     }
 }

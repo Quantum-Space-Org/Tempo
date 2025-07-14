@@ -6,18 +6,18 @@ namespace Quantum.Tempo;
 
 public class YearDayTime : Time
 {
-    public static YearDayTime New(YearSequencer year, DaySequencer day)
-        => new(year, day);
+    public static YearDayTime New(YearSequencer year, DaySequencer day, TimeZoneInfo timeZoneInfo = null)
+        => new(year, day, timeZoneInfo);
 
-    public static YearDayTime New(string year, string day) 
-        => new(year, day);
+    public static YearDayTime New(string year, string day, TimeZoneInfo timeZoneInfo = null) 
+        => new(year, day, timeZoneInfo);
 
-    public YearDayTime(string year, string day) : base(YearSequencer.New(int.Parse(year)))
+    public YearDayTime(string year, string day, TimeZoneInfo timeZoneInfo = null) : base(YearSequencer.New(int.Parse(year)), timeZoneInfo)
     {
         SetDay(day);
     }
     
-    public YearDayTime(YearSequencer year, DaySequencer day) : base(year)
+    public YearDayTime(YearSequencer year, DaySequencer day, TimeZoneInfo timeZoneInfo = null) : base(year, timeZoneInfo)
     {
         SetDay(day.Current().ToString());
     }
@@ -38,12 +38,12 @@ public class YearDayTime : Time
 
     public override string ToString()
     {
-        return $"{_year.ToString()}-{_day.ToString()}";
+        return ToIso();
     }
 
     public override string ToIso()
     {
-        return ToString();
+        return $"{_year.Current():D4}-{_day.Current():D3}";
     }
 
     protected override Time Clone()
@@ -72,6 +72,17 @@ public class YearDayTime : Time
     public override Time EnclosingImmediate()
     {
         throw new System.NotImplementedException();
+    }
+
+    public override DateTime ToDateTime()
+    {
+        return new DateTime(_year.Current(), 1, 1, 0, 0, 0, DateTimeKind.Unspecified).AddDays(_day.Current() - 1);
+    }
+    protected override void SetFromDateTime(DateTime dateTime, TimeZoneInfo zone)
+    {
+        _year = new YearSequencer(dateTime.Year);
+        _day = new DaySequencer(DateTime.IsLeapYear(dateTime.Year) ? 366 : 365, dateTime.DayOfYear);
+        this.TimeZoneInfo = zone;
     }
 
     private void SetDay(string day)

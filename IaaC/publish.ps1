@@ -6,6 +6,7 @@ Set-Location (Join-Path $PSScriptRoot "..")
 
 $buildDir = "./build"
 $nugetSource = "https://nuget.pkg.github.com/Quantum-Space-Org/index.json"
+$version = "1.0.0"
 
 # Get all .nupkg files
 $packages = Get-ChildItem -Path $buildDir -Filter *.nupkg

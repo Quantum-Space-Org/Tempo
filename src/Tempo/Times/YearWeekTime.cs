@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using TimeSequencer.Times;
 
 namespace Quantum.Tempo;
@@ -8,10 +9,10 @@ public class YearWeekTime : Time
     private WeekYearSequencer _currentWeek;
     private const string Symbol = "W";
 
-    public static YearWeekTime New(string year, string week) => new(year, week);
+    public static YearWeekTime New(string year, string week, TimeZoneInfo timeZoneInfo = null) => new(year, week, timeZoneInfo);
 
 
-    public YearWeekTime(string year, string week) : base(YearSequencer.New(int.Parse(year)))
+    public YearWeekTime(string year, string week, TimeZoneInfo timeZoneInfo = null) : base(YearSequencer.New(int.Parse(year)), timeZoneInfo)
     {
         var current = int.Parse(week[1..]);
 
@@ -79,5 +80,19 @@ public class YearWeekTime : Time
     public override Time EnclosingImmediate()
     {
         throw new System.NotImplementedException();
+    }
+
+    public override DateTime ToDateTime()
+    {
+        // ISO week to date: get the first day of the year, add (week-1)*7 days
+        var jan1 = new DateTime(_year.Current(), 1, 1, 0, 0, 0, DateTimeKind.Unspecified);
+        return jan1.AddDays((_currentWeek.Current() - 1) * 7);
+    }
+    protected override void SetFromDateTime(DateTime dateTime, TimeZoneInfo zone)
+    {
+        _year = new YearSequencer(dateTime.Year);
+        var week = System.Globalization.CultureInfo.InvariantCulture.Calendar.GetWeekOfYear(dateTime, System.Globalization.CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
+        _currentWeek = new WeekYearSequencer(week);
+        this.TimeZoneInfo = zone;
     }
 }

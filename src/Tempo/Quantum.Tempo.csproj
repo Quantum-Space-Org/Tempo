@@ -6,7 +6,7 @@
 		<EnablePreviewFeatures>true</EnablePreviewFeatures>
 		<Authors>Masoud Bahrami</Authors>
 		<Company>Quantum Space Fundation</Company>
-		<Version>0.0.1</Version>
+		<Version>1.0.0</Version>
 		<PackageProjectUrl>https://github.com/Quantum-Space-Org/Core</PackageProjectUrl>
 
 	</PropertyGroup>

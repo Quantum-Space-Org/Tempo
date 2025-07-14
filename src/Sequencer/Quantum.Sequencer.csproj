@@ -5,11 +5,7 @@
 		<LangVersion>Latest</LangVersion>
 		<Authors>Masoud Bahrami</Authors>
 		<Company>Quantum Space Fundation</Company>
-		<Version>0.0.1</Version>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<OutputPath>../../localPackages/Quantum.Sequencer</OutputPath>
+		<Version>1.0.0</Version>
 	</PropertyGroup>
 
 </Project>

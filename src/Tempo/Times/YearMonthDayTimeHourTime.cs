@@ -6,14 +6,12 @@ namespace Quantum.Tempo;
 
 public class YearMonthDayTimeHourTime : Time
 {
-    public static YearMonthDayTimeHourTime New(string year, string month, string day
-    , string hour)
+    public static YearMonthDayTimeHourTime New(string year, string month, string day, string hour, TimeZoneInfo timeZoneInfo = null)
     {
-        return new(year, month, day, hour);
+        return new(year, month, day, hour, timeZoneInfo);
     }
 
-    public YearMonthDayTimeHourTime(string year, string month, string day
-        , string hour) : base(YearSequencer.New(int.Parse(year)))
+    public YearMonthDayTimeHourTime(string year, string month, string day, string hour, TimeZoneInfo timeZoneInfo = null) : base(YearSequencer.New(int.Parse(year)), timeZoneInfo)
     {
         Month(month);
         Day(day);
@@ -31,6 +29,19 @@ public class YearMonthDayTimeHourTime : Time
     {
         HourPrevTimes(times);
         return Clone();
+    }
+
+    public override DateTime ToDateTime()
+    {
+        return new DateTime(_year.Current(), _month.Current(), _day.Current(), _hour.Current(), 0, 0, DateTimeKind.Unspecified);
+    }
+    protected override void SetFromDateTime(DateTime dateTime, TimeZoneInfo zone)
+    {
+        _year = new YearSequencer(dateTime.Year);
+        _month = new MonthSequencer(12, dateTime.Month);
+        _day = new DaySequencer(DateTime.DaysInMonth(dateTime.Year, dateTime.Month), dateTime.Day);
+        _hour = new HourSequencer(dateTime.Hour);
+        this.TimeZoneInfo = zone;
     }
 
 
@@ -64,6 +75,6 @@ public class YearMonthDayTimeHourTime : Time
         => ToIso();
 
     public override string ToIso() =>
-        $"{_year.ToString()}-{_month.ToString()}-{_day.ToString()}T{_hour.ToString()}";
+        $"{_year.Current():D4}-{_month.Current():D2}-{_day.Current():D2}T{_hour.Current():D2}";
 
 }

@@ -85,6 +85,122 @@ public class Interval
 
         else throw new NotImplementedException();
     }
+
+    /// <summary>
+    /// Parses an interval string (e.g., '2024-01-01/2024-01-10', '/2024-01-10', '2024-01-01/') into an Interval object.
+    /// Supports ISO, Persian, and Hijri date strings.
+    /// </summary>
+    public static Interval Parse(string intervalString)
+    {
+        if (string.IsNullOrWhiteSpace(intervalString))
+            throw new ArgumentException("Interval string cannot be null or empty.");
+        var parts = intervalString.Split('/');
+        if (parts.Length == 1)
+        {
+            var t = TimeFactory.Create(parts[0]);
+            return new Interval(t, t);
+        }
+        Time? start = string.IsNullOrWhiteSpace(parts[0]) ? null : TimeFactory.Create(parts[0]);
+        Time? finish = string.IsNullOrWhiteSpace(parts[1]) ? null : TimeFactory.Create(parts[1]);
+        return new Interval(start, finish);
+    }
+
+    /// <summary>
+    /// Returns the normalized interval string in 'start/end' ISO format.
+    /// </summary>
+    public string ToIntervalString()
+    {
+        var startStr = Start?.ToIso() ?? "";
+        var finishStr = Finish?.ToIso() ?? "";
+        return $"{startStr}/{finishStr}";
+    }
+
+    /// <summary>
+    /// Returns the minimal covering interval (union) of two intervals as a string, or null if disjoint.
+    /// </summary>
+    public static string? Union(string interval1, string interval2)
+    {
+        var i1 = Parse(interval1);
+        var i2 = Parse(interval2);
+        if (i1.Finish.CompareTo(i2.Start) < 0 || i2.Finish.CompareTo(i1.Start) < 0)
+            return null; // Disjoint
+        var start = i1.Start.CompareTo(i2.Start) < 0 ? i1.Start : i2.Start;
+        var finish = i1.Finish.CompareTo(i2.Finish) > 0 ? i1.Finish : i2.Finish;
+        return new Interval(start, finish).ToIntervalString();
+    }
+
+    /// <summary>
+    /// Returns the intersection (overlap) of two intervals as a string, or null if none.
+    /// </summary>
+    public static string? Intersection(string interval1, string interval2)
+    {
+        var i1 = Parse(interval1);
+        var i2 = Parse(interval2);
+        var start = i1.Start.CompareTo(i2.Start) > 0 ? i1.Start : i2.Start;
+        var finish = i1.Finish.CompareTo(i2.Finish) < 0 ? i1.Finish : i2.Finish;
+        if (start.CompareTo(finish) > 0)
+            return null;
+        return new Interval(start, finish).ToIntervalString();
+    }
+
+    /// <summary>
+    /// Returns the part of interval1 not in interval2 as a list of interval strings (may be empty or one/two intervals).
+    /// </summary>
+    public static List<string> Difference(string interval1, string interval2)
+    {
+        var i1 = Parse(interval1);
+        var i2 = Parse(interval2);
+        var result = new List<string>();
+        if (i2.Start.CompareTo(i1.Finish) > 0 || i2.Finish.CompareTo(i1.Start) < 0)
+        {
+            result.Add(i1.ToIntervalString()); // No overlap
+            return result;
+        }
+        if (i2.Start.CompareTo(i1.Start) > 0)
+            result.Add(new Interval(i1.Start, i2.Start).ToIntervalString());
+        if (i2.Finish.CompareTo(i1.Finish) < 0)
+            result.Add(new Interval(i2.Finish, i1.Finish).ToIntervalString());
+        return result;
+    }
+
+    /// <summary>
+    /// Returns the ISO 8601 duration string of the interval.
+    /// </summary>
+    public static string Duration(string intervalString)
+    {
+        var i = Parse(intervalString);
+        var start = i.Start.ToDateTime();
+        var finish = i.Finish.ToDateTime();
+        var duration = finish - start;
+        return Quantum.Tempo.Times.Duration.Parse(duration.ToString()).ToIsoString();
+    }
+
+    /// <summary>
+    /// Returns the Allen's interval relation between two intervals as a string (e.g., 'Before', 'Overlaps').
+    /// </summary>
+    public static string Relation(string interval1, string interval2)
+    {
+        var i1 = Parse(interval1);
+        var i2 = Parse(interval2);
+        var s1 = i1.Start.ToDateTime();
+        var e1 = i1.Finish.ToDateTime();
+        var s2 = i2.Start.ToDateTime();
+        var e2 = i2.Finish.ToDateTime();
+        if (e1 < s2) return "Before";
+        if (s1 > e2) return "After";
+        if (e1 == s2) return "Meets";
+        if (s1 == e2) return "MetBy";
+        if (s1 == s2 && e1 < e2) return "Starts";
+        if (s1 == s2 && e1 > e2) return "StartedBy";
+        if (e1 == e2 && s1 > s2) return "Finishes";
+        if (e1 == e2 && s1 < s2) return "FinishedBy";
+        if (s1 > s2 && e1 < e2) return "During";
+        if (s1 < s2 && e1 > e2) return "Contains";
+        if (s1 < s2 && e1 > s2 && e1 < e2) return "Overlaps";
+        if (s1 > s2 && s1 < e2 && e1 > e2) return "OverlappedBy";
+        if (s1 == s2 && e1 == e2) return "Equal";
+        return "Unknown";
+    }
 }
 
 

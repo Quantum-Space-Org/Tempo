@@ -119,7 +119,16 @@ public class From
     }
 
     private bool Guard((Time? starts, Time? finiehses) interval) 
-        => interval.starts is not null || interval.finiehses != null;
+    {
+        // If both are null, not valid
+        if (interval.starts is null && interval.finiehses is null)
+            return false;
+        // If only one is present, valid
+        if (interval.starts is null || interval.finiehses is null)
+            return true;
+        // If both are present, start must be <= finish
+        return interval.starts.CompareTo(interval.finiehses) <= 0;
+    }
 
     (Time? starts, Time? finiehses) ComposedToInterval(string _value)
     {

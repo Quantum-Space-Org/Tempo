@@ -6,10 +6,17 @@ namespace Quantum.Tempo;
 
 public class YearTime : Time
 {
-    public static YearTime New(string year) => new(year);
-    public YearTime(string year) : base(YearSequencer.New(int.Parse(year)))
-    {
+    public static YearTime New(string year, TimeZoneInfo timeZoneInfo = null) => new(year, timeZoneInfo);
+    public YearTime(string year, TimeZoneInfo timeZoneInfo = null) : base(YearSequencer.New(int.Parse(year)), timeZoneInfo) {}
 
+    public override DateTime ToDateTime()
+    {
+        return new DateTime(_year.Current(), 1, 1, 0, 0, 0, DateTimeKind.Unspecified);
+    }
+    protected override void SetFromDateTime(DateTime dateTime, TimeZoneInfo zone)
+    {
+        _year = new YearSequencer(dateTime.Year);
+        this.TimeZoneInfo = zone;
     }
 
 

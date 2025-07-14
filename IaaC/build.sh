@@ -6,6 +6,7 @@ cd "$(dirname "$0")/.."
 
 CONFIG="Release"
 OUTPUT_DIR="./build"  # This will ensure the build folder is in the root
+VERSION="1.0.0"
 
 echo "🔨 Building solution in $(pwd) ..."
 dotnet build Quantum.Tempo.sln --configuration $CONFIG
