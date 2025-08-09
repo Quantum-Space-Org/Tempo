@@ -2,6 +2,8 @@
 
 Quantum.Tempo is a .NET date/time framework focused on simple, string-based, calendar-agnostic manipulation of dates, times, intervals, and durations. It supports multiple calendar systems (Gregorian, Persian/Shamsi, Hijri/Arabic, and custom) and is designed for robust, human-friendly, and ISO-compliant operations.
 
+For a complete list of supported features, see [docs/FEATURES.md](docs/FEATURES.md).
+
 ## Features
 - String-based API: All operations use and return strings
 - Calendar-agnostic: Supports Gregorian, Persian, Hijri, and pluggable calendars
